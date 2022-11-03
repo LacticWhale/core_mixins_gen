@@ -1,0 +1,3 @@
+[submodule "core_mixins"]
+	path = core_mixins
+	url = git@github.com:LacticWhale/core_mixins.git
