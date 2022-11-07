@@ -7,9 +7,11 @@ import 'package:basic_utils/basic_utils.dart';
 import 'package:collection/collection.dart';
 
 String parseClass(ClassMirror classMirror, String lib, Map<String, Set<Type>> generate, Set<Type> unfolded) {
-  final path = classMirror.location!.sourceUri.path.replaceAll('/', r'\');
+  var path = classMirror.location!.sourceUri.path.replaceAll('/', r'\');
+  print(path);
+  if(path == '_http') path = '_http\\http.dart';
   final analysis = parseFile(
-    path: path.contains(r':\') ? path.substring(1) : r'C:\src\flutter\bin\cache\dart-sdk\lib\' + classMirror.location!.sourceUri.path.replaceAll('/', r'\'), 
+    path: path.contains(r':\') ? path.substring(1) : r'C:\src\flutter\bin\cache\dart-sdk\lib\' + path, 
     featureSet: FeatureSet.latestLanguageVersion()
   );
   final className = parseSymbol(classMirror.simpleName);
@@ -120,6 +122,7 @@ mixin ${className}Mixin$arguments implements $className$arguments {
     .where((e) => e.length == 3)
     .whereNot((e) => e[1] == 'core')
     .map((e) => e.sublist(0, 2).join(':'))
+    .map((e) => e == 'dart:_http' ? 'dart:io' : e)
     .toSet()
     .map((e) => 'import \'$e\';')
     .join('\n')}\n$result';

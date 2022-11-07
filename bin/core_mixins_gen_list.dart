@@ -14,6 +14,7 @@ final libs = <String>{
   // 'developer',
   // 'ffi',
   'io',
+  '_http',
   // 'isolate',
   // 'math',
   // 'mirrors',
@@ -26,20 +27,40 @@ final except = {
 
 void main(List<String> arguments) {
   print('Generating imports file.');
-  String result = libs.map((e) => 'import \'dart:$e\' as $e;').join('\n');
+  String result = libs.where((element) => !element.startsWith('_')).map((e) => 'import \'dart:$e\' as $e;').join('\n');
   
   result += '\n\n';
   result += 'final Map<String, Set<Type>> generate = {\n';
 
   for(final lib in libs) {
     print('Parsing $lib.');
+
+    if(lib == '_http') {
+      final libPath = join(sdkPath, lib);
+      final libAnalysis = parseFile(
+        path: join(libPath, 'http.dart'), 
+        featureSet: FeatureSet.latestLanguageVersion(),
+      );
+      result += '\t\'http\': {\n';
+      
+      for(final classDeclaration in libAnalysis.unit.declarations.whereType<ClassDeclaration>()) {
+        if(classDeclaration.name.toString().startsWith('_')) continue;
+        // if(classDeclaration.abstractKeyword == null) continue;
+        if(except.contains(classDeclaration.name.toString())) continue;
+
+        result += '\t\tio.${classDeclaration.name},\n';
+      }
+
+      result += '\t},\n';
+      continue;
+    }
+    result += '\t\'$lib\': {\n';
+
     final libPath = join(sdkPath, lib);
     final libAnalysis = parseFile(
       path: join(libPath, '$lib.dart'), 
       featureSet: FeatureSet.latestLanguageVersion(),
     );
-
-    result += '\t\'$lib\': {\n';
 
     for(final module in libAnalysis.unit.childEntities.whereType<PartDirective>()) {
       final file = module.childEntities.whereType<SimpleStringLiteral>().first;
@@ -52,7 +73,6 @@ void main(List<String> arguments) {
         if(classDeclaration.name.toString().startsWith('_')) continue;
         // if(classDeclaration.abstractKeyword == null) continue;
         if(except.contains(classDeclaration.name.toString())) continue;
-
 
         result += '\t\t$lib.${classDeclaration.name},\n';
       }

@@ -1,6 +1,6 @@
 name: core_mixins_gen
 description: Code generator for core-mixins package.
-version: 1.0.0
+version: 1.0.2
 homepage: https://github.com/LacticWhale/core_mixins_gen
 publish_to: none
 
